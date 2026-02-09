@@ -16,9 +16,7 @@ A simple macOS menu bar app to quickly toggle between Light and Dark mode.
 
 ## Installation
 
-1. Clone this repository
-2. Open `Darki.xcodeproj` in Xcode
-3. Build and run
+Find the .zip in the releases
 
 ## Usage
 
