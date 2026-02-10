@@ -6,10 +6,11 @@ struct ContentView: View {
     @AppStorage("isDark") private var isDark = false
     @AppStorage("autoMode") private var autoMode = false
     @AppStorage("startHour") private var startHour = 20
+    @AppStorage("startMinute") private var startMinute = 0
     @AppStorage("endHour") private var endHour = 7
+    @AppStorage("endMinute") private var endMinute = 0
     @AppStorage("launchAtLogin") private var launchAtLogin = false
     
-    @State private var timer: Timer?
     @State private var animateHeaderIcon = false
     @State private var animateToggleIcon = false
     
@@ -49,16 +50,16 @@ struct ContentView: View {
             
             Divider()
             
-            // Auto mode sans animation
+            // Auto mode
             VStack(alignment: .leading, spacing: 10) {
                 Toggle("auto_mode", isOn: $autoMode)
                     .help("auto_mode_help")
                     .onChange(of: autoMode) { _, newValue in
-                        if newValue {
-                            startAutoMode()
-                        } else {
-                            stopAutoMode()
-                        }
+                        // Notifier l'AppDelegate
+                        NotificationCenter.default.post(
+                            name: NSNotification.Name("AutoModeChanged"),
+                            object: newValue
+                        )
                     }
                 
                 VStack(alignment: .leading, spacing: 8) {
@@ -66,30 +67,54 @@ struct ContentView: View {
                         .font(.caption)
                         .foregroundStyle(.secondary)
                     
+                    // Heure de début
                     HStack {
                         Text("start")
                             .frame(width: 50, alignment: .leading)
                         
                         Picker("", selection: $startHour) {
                             ForEach(0..<24, id: \.self) { hour in
-                                Text(String(format: "%02d:00", hour)).tag(hour)
+                                Text(String(format: "%02d", hour)).tag(hour)
                             }
                         }
                         .labelsHidden()
-                        .frame(width: 90)
+                        .frame(width: 60)
+                        
+                        Text(":")
+                            .foregroundStyle(.secondary)
+                        
+                        Picker("", selection: $startMinute) {
+                            ForEach(0..<60, id: \.self) { minute in
+                                Text(String(format: "%02d", minute)).tag(minute)
+                            }
+                        }
+                        .labelsHidden()
+                        .frame(width: 60)
                     }
                     
+                    // Heure de fin
                     HStack {
                         Text("end")
                             .frame(width: 50, alignment: .leading)
                         
                         Picker("", selection: $endHour) {
                             ForEach(0..<24, id: \.self) { hour in
-                                Text(String(format: "%02d:00", hour)).tag(hour)
+                                Text(String(format: "%02d", hour)).tag(hour)
                             }
                         }
                         .labelsHidden()
-                        .frame(width: 90)
+                        .frame(width: 60)
+                        
+                        Text(":")
+                            .foregroundStyle(.secondary)
+                        
+                        Picker("", selection: $endMinute) {
+                            ForEach(0..<60, id: \.self) { minute in
+                                Text(String(format: "%02d", minute)).tag(minute)
+                            }
+                        }
+                        .labelsHidden()
+                        .frame(width: 60)
                     }
                     
                     Text("schedule_description")
@@ -130,9 +155,6 @@ struct ContentView: View {
         .onAppear {
             checkMode()
             checkLaunchAtLogin()
-            if autoMode {
-                startAutoMode()
-            }
         }
         .onChange(of: isDark) { _, _ in
             animateHeaderIcon.toggle()
@@ -151,37 +173,6 @@ struct ContentView: View {
         AppleScriptManager.setDarkMode(newMode) { success in
             if success {
                 isDark = newMode
-            }
-        }
-    }
-    
-    func startAutoMode() {
-        checkSchedule()
-        timer = Timer.scheduledTimer(withTimeInterval: 60, repeats: true) { _ in
-            checkSchedule()
-        }
-    }
-    
-    func stopAutoMode() {
-        timer?.invalidate()
-        timer = nil
-    }
-    
-    func checkSchedule() {
-        let hour = Calendar.current.component(.hour, from: Date())
-        let shouldBeDark: Bool
-        
-        if startHour < endHour {
-            shouldBeDark = hour >= startHour && hour < endHour
-        } else {
-            shouldBeDark = hour >= startHour || hour < endHour
-        }
-        
-        guard shouldBeDark != isDark else { return }
-        
-        AppleScriptManager.setDarkMode(shouldBeDark) { success in
-            if success {
-                isDark = shouldBeDark
             }
         }
     }
@@ -206,3 +197,4 @@ struct ContentView: View {
         }
     }
 }
+
