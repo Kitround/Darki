@@ -41,6 +41,7 @@ Darki is available in the following languages:
 1. Download the latest release from the [Releases](https://github.com/Kitround/Darki/releases) page
 2. Unzip the file and move **Darki.app** to your Applications folder
 3. Open Darki from your Applications folder
+4. You need to autorize the app to load on the MacOS "Confidentiality & Security"
 
 ## License
 
