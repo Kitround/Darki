@@ -25,6 +25,7 @@ struct ContentView: View {
                 
                 Text("Darki")
                     .font(.headline)
+                
                 Spacer()
             }
             
@@ -39,10 +40,10 @@ struct ContentView: View {
                     Image(systemName: isDark ? "sun.max" : "moon")
                         .symbolEffect(.bounce, options: .speed(1.4), value: animateToggleIcon)
                     
-                    Text(isDark ? "Switch to Light Mode" : "Switch to Dark Mode")
+                    Text(isDark ? "switch_to_light" : "switch_to_dark")
                 }
-                .frame(maxWidth: .infinity)
             }
+            .frame(maxWidth: .infinity)
             .buttonStyle(.borderedProminent)
             .tint(isDark ? .orange : .purple)
             
@@ -50,8 +51,8 @@ struct ContentView: View {
             
             // Auto mode sans animation
             VStack(alignment: .leading, spacing: 10) {
-                Toggle("Auto Mode", isOn: $autoMode)
-                    .help("Automatically switch dark mode between selected hours.")
+                Toggle("auto_mode", isOn: $autoMode)
+                    .help("auto_mode_help")
                     .onChange(of: autoMode) { _, newValue in
                         if newValue {
                             startAutoMode()
@@ -61,13 +62,14 @@ struct ContentView: View {
                     }
                 
                 VStack(alignment: .leading, spacing: 8) {
-                    Text("Dark mode schedule")
+                    Text("dark_mode_schedule")
                         .font(.caption)
                         .foregroundStyle(.secondary)
                     
                     HStack {
-                        Text("Start")
+                        Text("start")
                             .frame(width: 50, alignment: .leading)
+                        
                         Picker("", selection: $startHour) {
                             ForEach(0..<24, id: \.self) { hour in
                                 Text(String(format: "%02d:00", hour)).tag(hour)
@@ -78,8 +80,9 @@ struct ContentView: View {
                     }
                     
                     HStack {
-                        Text("End")
+                        Text("end")
                             .frame(width: 50, alignment: .leading)
+                        
                         Picker("", selection: $endHour) {
                             ForEach(0..<24, id: \.self) { hour in
                                 Text(String(format: "%02d:00", hour)).tag(hour)
@@ -89,7 +92,7 @@ struct ContentView: View {
                         .frame(width: 90)
                     }
                     
-                    Text("Dark mode will activate automatically between these hours")
+                    Text("schedule_description")
                         .font(.caption2)
                         .foregroundStyle(.secondary)
                         .padding(.top, 4)
@@ -102,8 +105,8 @@ struct ContentView: View {
             Divider()
             
             // Launch at login
-            Toggle("Launch at Login", isOn: $launchAtLogin)
-                .help("Open Darki automatically when you log in.")
+            Toggle("launch_at_login", isOn: $launchAtLogin)
+                .help("launch_at_login_help")
                 .onChange(of: launchAtLogin) { _, newValue in
                     setLaunchAtLogin(newValue)
                 }
@@ -116,7 +119,7 @@ struct ContentView: View {
             } label: {
                 HStack {
                     Image(systemName: "xmark.circle")
-                    Text("Quit")
+                    Text("quit")
                 }
             }
             .buttonStyle(.bordered)
@@ -127,7 +130,6 @@ struct ContentView: View {
         .onAppear {
             checkMode()
             checkLaunchAtLogin()
-            
             if autoMode {
                 startAutoMode()
             }
