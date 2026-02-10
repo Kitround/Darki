@@ -42,11 +42,11 @@ Darki is available in the following languages:
 2. Unzip the file and move **Darki.app** to your Applications folder
 3. Open Darki from your Applications folder
 
-## macOS Security Permissions
+# macOS Security Permissions
 
 Darki requires two permissions to function properly on macOS:
 
-## 1. Allow the App to Run
+# 1. Allow the App to Run
 
 When you first open Darki, macOS may block it because it's not from the App Store. To fix this:
 
@@ -54,7 +54,7 @@ When you first open Darki, macOS may block it because it's not from the App Stor
 2. Click **"Open Anyway"** next to the message about Darki
 3. Or right-click the app and select **"Open"**
 
-## 2. Enable Automation for System Events
+# 2. Enable Automation for System Events
 
 Darki needs permission to control System Events to toggle dark mode automatically.
 
