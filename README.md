@@ -52,7 +52,6 @@ When you first open Darki, macOS may block it because it's not from the App Stor
 
 1. Go to **System Preferences > Security & Privacy > General**
 2. Click **"Open Anyway"** next to the message about Darki
-3. Or right-click the app and select **"Open"**
 
 ### Enable Automation for System Events
 
