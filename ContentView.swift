@@ -14,6 +14,9 @@ struct ContentView: View {
     @State private var animateHeaderIcon = false
     @State private var animateToggleIcon = false
     
+    // Minutes par intervalles de 15
+    let minuteIntervals = [0, 15, 30, 45]
+    
     var body: some View {
         VStack(alignment: .leading, spacing: 15) {
             // Header avec animation
@@ -55,7 +58,6 @@ struct ContentView: View {
                 Toggle("auto_mode", isOn: $autoMode)
                     .help("auto_mode_help")
                     .onChange(of: autoMode) { _, newValue in
-                        // Notifier l'AppDelegate
                         NotificationCenter.default.post(
                             name: NSNotification.Name("AutoModeChanged"),
                             object: newValue
@@ -79,17 +81,23 @@ struct ContentView: View {
                         }
                         .labelsHidden()
                         .frame(width: 60)
+                        .onChange(of: startHour) { _, _ in
+                            NotificationCenter.default.post(name: NSNotification.Name("ScheduleChanged"), object: nil)
+                        }
                         
                         Text(":")
                             .foregroundStyle(.secondary)
                         
                         Picker("", selection: $startMinute) {
-                            ForEach(0..<60, id: \.self) { minute in
+                            ForEach(minuteIntervals, id: \.self) { minute in
                                 Text(String(format: "%02d", minute)).tag(minute)
                             }
                         }
                         .labelsHidden()
                         .frame(width: 60)
+                        .onChange(of: startMinute) { _, _ in
+                            NotificationCenter.default.post(name: NSNotification.Name("ScheduleChanged"), object: nil)
+                        }
                     }
                     
                     // Heure de fin
@@ -104,17 +112,23 @@ struct ContentView: View {
                         }
                         .labelsHidden()
                         .frame(width: 60)
+                        .onChange(of: endHour) { _, _ in
+                            NotificationCenter.default.post(name: NSNotification.Name("ScheduleChanged"), object: nil)
+                        }
                         
                         Text(":")
                             .foregroundStyle(.secondary)
                         
                         Picker("", selection: $endMinute) {
-                            ForEach(0..<60, id: \.self) { minute in
+                            ForEach(minuteIntervals, id: \.self) { minute in
                                 Text(String(format: "%02d", minute)).tag(minute)
                             }
                         }
                         .labelsHidden()
                         .frame(width: 60)
+                        .onChange(of: endMinute) { _, _ in
+                            NotificationCenter.default.post(name: NSNotification.Name("ScheduleChanged"), object: nil)
+                        }
                     }
                     
                     Text("schedule_description")
@@ -197,4 +211,3 @@ struct ContentView: View {
         }
     }
 }
-
