@@ -10,7 +10,7 @@ This app is 100% vibe coded using Perplexity and Claude Sonnet 4.5
 [![Swift](https://img.shields.io/badge/Swift-5.9-orange.svg)](https://swift.org/)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
-## Features
+### Features
 
 - 🌓 Quick toggle between Light/Dark mode from menu bar
 - ⏰ Auto mode: Schedule dark mode between specific hours
@@ -19,7 +19,7 @@ This app is 100% vibe coded using Perplexity and Claude Sonnet 4.5
 
 <img src="screenshot.jpg" alt="Screenshot" width="300" height="auto">
 
-## Supported Languages
+### Supported Languages
 
 Darki is available in the following languages:
 
@@ -32,17 +32,42 @@ Darki is available in the following languages:
 - 🇯🇵 日本語 (Japanese)
 - 🇰🇷 한국어 (Korean)
 
-## Requirements
+### Requirements
 
 - macOS 14.0 (Sonoma) or later
 
-## Installation
+### Installation
 
 1. Download the latest release from the [Releases](https://github.com/Kitround/Darki/releases) page
 2. Unzip the file and move **Darki.app** to your Applications folder
 3. Open Darki from your Applications folder
-4. You need to autorize the app to load on the MacOS "Confidentiality & Security"
 
-## License
+## macOS Security Permissions
+
+Darki requires two permissions to function properly on macOS:
+
+## 1. Allow the App to Run
+
+When you first open Darki, macOS may block it because it's not from the App Store. To fix this:
+
+1. Go to **System Preferences > Security & Privacy > General**
+2. Click **"Open Anyway"** next to the message about Darki
+3. Or right-click the app and select **"Open"**
+
+## 2. Enable Automation for System Events
+
+Darki needs permission to control System Events to toggle dark mode automatically.
+
+**First time:** A popup should appear asking for permission when you launch Darki.
+
+**If no popup appears:**
+1. Open **System Preferences > Security & Privacy > Privacy**
+2. Select **"Automation"** from the left sidebar
+3. Find **Darki** in the list
+4. Check the box next to **"System Events"**
+
+Without this permission, Darki cannot change your system's appearance settings.
+
+### License
 
 MIT License - feel free to use and modify!
