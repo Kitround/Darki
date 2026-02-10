@@ -1,8 +1,4 @@
-<div align="center">
-  <img src="icon.png" alt="Darki Icon" width="120" height="120">
-  <h1>Darki</h1>
-  <p>Automatic Toggle macOS dark mode with ease</p>
-</div>
+<img src="icon.png" alt="Darki Icon" width="120" height="120">
 
 # Darki
 
