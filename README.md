@@ -11,6 +11,8 @@ A simple macOS menu bar app to automatic toggle between Light and Dark mode with
 - 🚀 Launch at login option
 - 🎨 Native SwiftUI interface for macOS
 
+<img src="screenshot.png" alt="Screenshot" width="300" height="auto">
+
 ## Requirements
 
 - macOS 14.0 (Sonoma) or later
