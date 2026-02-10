@@ -2,7 +2,7 @@
 
 # Darki
 
-A simple macOS menu bar app that automatically toggles between Light and Dark mode on a schedule.
+A free and simple macOS menu bar app that automatically toggles between Light and Dark mode on a schedule.
 
 This app is 100% vibe coded using Perplexity and Claude Sonnet 4.5
 
