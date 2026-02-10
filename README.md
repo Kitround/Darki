@@ -12,7 +12,6 @@ A simple macOS menu bar app to quickly toggle between Light and Dark mode.
 ## Requirements
 
 - macOS 14.0 (Sonoma) or later
-- Xcode 15.0 or later
 
 ## Installation
 
