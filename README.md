@@ -1,6 +1,12 @@
+<div align="center">
+  <img src="icon.png" alt="Darki Icon" width="120" height="120">
+  <h1>Darki</h1>
+  <p>Automatic Toggle macOS dark mode with ease</p>
+</div>
+
 # Darki
 
-A simple macOS menu bar app to quickly toggle between Light and Dark mode.
+A simple macOS menu bar app to automatic toggle between Light and Dark mode with hours.
 
 ## Features
 
@@ -16,13 +22,6 @@ A simple macOS menu bar app to quickly toggle between Light and Dark mode.
 ## Installation
 
 Find the .zip in the releases
-
-## Usage
-
-Click the menu bar icon to:
-- Toggle dark mode manually
-- Set up automatic scheduling
-- Configure launch at login
 
 ## License
 
