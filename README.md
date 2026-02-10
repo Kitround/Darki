@@ -4,6 +4,8 @@
 
 A simple macOS menu bar app to automatic toggle between Light and Dark mode with hours.
 
+This app was totally vibe coded using Perplexity and Claude Sonnet 4.5
+
 ## Features
 
 - 🌓 Quick toggle between Light/Dark mode from menu bar
