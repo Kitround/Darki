@@ -48,7 +48,7 @@ struct ContentView: View {
             
             Divider()
             
-            // Auto mode amélioré
+            // Auto mode sans animation
             VStack(alignment: .leading, spacing: 10) {
                 Toggle("Auto Mode", isOn: $autoMode)
                     .help("Automatically switch dark mode between selected hours.")
@@ -60,43 +60,43 @@ struct ContentView: View {
                         }
                     }
                 
-                if autoMode {
-                    VStack(alignment: .leading, spacing: 8) {
-                        Text("Dark mode schedule")
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                        
-                        HStack {
-                            Text("Start")
-                                .frame(width: 50, alignment: .leading)
-                            Picker("", selection: $startHour) {
-                                ForEach(0..<24, id: \.self) { hour in
-                                    Text(String(format: "%02d:00", hour)).tag(hour)
-                                }
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Dark mode schedule")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                    
+                    HStack {
+                        Text("Start")
+                            .frame(width: 50, alignment: .leading)
+                        Picker("", selection: $startHour) {
+                            ForEach(0..<24, id: \.self) { hour in
+                                Text(String(format: "%02d:00", hour)).tag(hour)
                             }
-                            .labelsHidden()
-                            .frame(width: 90)
                         }
-                        
-                        HStack {
-                            Text("End")
-                                .frame(width: 50, alignment: .leading)
-                            Picker("", selection: $endHour) {
-                                ForEach(0..<24, id: \.self) { hour in
-                                    Text(String(format: "%02d:00", hour)).tag(hour)
-                                }
-                            }
-                            .labelsHidden()
-                            .frame(width: 90)
-                        }
-                        
-                        Text("Dark mode will activate automatically between these hours")
-                            .font(.caption2)
-                            .foregroundStyle(.secondary)
-                            .padding(.top, 4)
+                        .labelsHidden()
+                        .frame(width: 90)
                     }
-                    .padding(.leading, 8)
+                    
+                    HStack {
+                        Text("End")
+                            .frame(width: 50, alignment: .leading)
+                        Picker("", selection: $endHour) {
+                            ForEach(0..<24, id: \.self) { hour in
+                                Text(String(format: "%02d:00", hour)).tag(hour)
+                            }
+                        }
+                        .labelsHidden()
+                        .frame(width: 90)
+                    }
+                    
+                    Text("Dark mode will activate automatically between these hours")
+                        .font(.caption2)
+                        .foregroundStyle(.secondary)
+                        .padding(.top, 4)
                 }
+                .padding(.leading, 8)
+                .disabled(!autoMode)
+                .opacity(autoMode ? 1.0 : 0.5)
             }
             
             Divider()
@@ -124,8 +124,6 @@ struct ContentView: View {
         }
         .padding(20)
         .frame(width: 300)
-        .animation(.easeInOut(duration: 0.2), value: autoMode)
-        .animation(.easeInOut(duration: 0.2), value: isDark)
         .onAppear {
             checkMode()
             checkLaunchAtLogin()
