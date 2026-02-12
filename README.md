@@ -4,7 +4,7 @@
 
 A free and simple macOS menu bar app that automatically toggles between Light and Dark mode on a schedule.
 
-This app is 100% vibe coded using Perplexity and Claude Sonnet 4.5 without any kwnowledge in coding, by copy/paste to Xcode 26.2, debbuging and adding features with natural prompts completed with screenshots. It took around 2 hours for the first working version, and 4 hours to finalize the UI, the functions, the liquid glass icon and this GitHub repo.
+This app is 100% vibe coded using Perplexity and Claude Sonnet 4.5 without any kwnowledge in coding, by reading steps and copy/paste to Xcode 26.2, debbuging and adding features with natural prompts completed with screenshots. It took around 2 hours for the first working version, and 4 hours to finalize the UI, the functions, the liquid glass icon and this GitHub repo.
 
 [![macOS](https://img.shields.io/badge/macOS-13.0+-blue.svg)](https://www.apple.com/macos/)
 [![Swift](https://img.shields.io/badge/Swift-5.9-orange.svg)](https://swift.org/)
