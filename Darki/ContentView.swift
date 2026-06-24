@@ -30,6 +30,7 @@ struct ContentView: View {
     @AppStorage("launchAtLogin") private var launchAtLogin = false
 
     @State private var animateToggleIcon = false
+    @State private var hasAppeared = false
 
     private let controller = AppearanceController.shared
 
@@ -104,6 +105,9 @@ struct ContentView: View {
                 HStack {
                     Image(systemName: isDark ? "sun.max" : "moon")
                         .symbolEffect(.bounce, options: .speed(1.4), value: animateToggleIcon)
+                        // Largeur fixe : le libellé ne saute pas quand l'icône
+                        // change (sun.max est plus large que moon).
+                        .frame(width: 22)
                         .accessibilityHidden(true)
                     Text(isDark ? "switch_to_light" : "switch_to_dark")
                 }
@@ -165,9 +169,13 @@ struct ContentView: View {
         .frame(width: 300)
         // Hauteur fixe : empêche tout redimensionnement au changement d'icône.
         .fixedSize(horizontal: false, vertical: true)
-        // Anime header + teinte + libellés quand l'état bascule.
-        .animation(.smooth(duration: 0.35), value: isDark)
-        .onAppear(perform: syncState)
+        // Anime header + teinte + libellés quand l'état bascule — mais pas à
+        // la première ouverture (sinon le menu « s'anime » en apparaissant).
+        .animation(hasAppeared ? .smooth(duration: 0.35) : nil, value: isDark)
+        .onAppear {
+            syncState()
+            hasAppeared = true
+        }
     }
 
     // MARK: - Schedule section
@@ -184,8 +192,11 @@ struct ContentView: View {
             // Aperçu vivant de la prochaine bascule.
             Label(nextSwitchText, systemImage: "clock")
                 .font(.caption2)
+                .monospacedDigit()
                 .foregroundStyle(.secondary)
                 .padding(.top, 2)
+                // Le chiffre de l'heure morphe au lieu de sauter (changement d'horaire).
+                .contentTransition(.numericText())
         }
         .padding(.leading, 8)
     }
@@ -198,7 +209,7 @@ struct ContentView: View {
             // Un seul Picker "HH:mm", palier 10 min, style .menu natif.
             Picker("", selection: slot) {
                 ForEach(timeSlots, id: \.self) { minutes in
-                    Text(formatSlot(minutes)).tag(minutes)
+                    Text(formatSlot(minutes)).monospacedDigit().tag(minutes)
                 }
             }
             .labelsHidden()
