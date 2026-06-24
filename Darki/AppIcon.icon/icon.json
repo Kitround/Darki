@@ -1,0 +1,100 @@
+{
+  "fill" : {
+    "linear-gradient" : [
+      "extended-srgb:1.00000,0.58431,0.00000,1.00000",
+      "extended-srgb:1.00000,0.23137,0.18824,1.00000"
+    ],
+    "orientation" : {
+      "start" : {
+        "x" : 0.5,
+        "y" : 0
+      },
+      "stop" : {
+        "x" : 0.5,
+        "y" : 0.7
+      }
+    }
+  },
+  "groups" : [
+    {
+      "layers" : [
+        {
+          "blend-mode-specializations" : [
+            {
+              "value" : "normal"
+            },
+            {
+              "appearance" : "dark",
+              "value" : "lighten"
+            }
+          ],
+          "fill" : {
+            "automatic-gradient" : "display-p3:0.87263,0.97505,1.00000,1.00000"
+          },
+          "glass" : true,
+          "hidden" : false,
+          "image-name" : "moon.svg",
+          "name" : "Moon",
+          "position" : {
+            "scale" : 1.26,
+            "translation-in-points" : [
+              43,
+              0
+            ]
+          }
+        },
+        {
+          "blend-mode-specializations" : [
+            {
+              "appearance" : "dark",
+              "value" : "normal"
+            }
+          ],
+          "fill-specializations" : [
+            {
+              "appearance" : "dark",
+              "value" : "automatic"
+            }
+          ],
+          "glass" : true,
+          "image-name" : "sun.svg",
+          "name" : "Sun",
+          "position" : {
+            "scale" : 1.22,
+            "translation-in-points" : [
+              50,
+              -5
+            ]
+          }
+        },
+        {
+          "blend-mode" : "normal",
+          "fill" : "none",
+          "glass" : false,
+          "hidden" : false,
+          "image-name" : "background_night.svg",
+          "name" : "Night",
+          "position" : {
+            "scale" : 1.33,
+            "translation-in-points" : [
+              57,
+              0
+            ]
+          }
+        }
+      ],
+      "name" : "Darki",
+      "shadow" : {
+        "kind" : "neutral",
+        "opacity" : 0.5
+      },
+      "translucency" : {
+        "enabled" : true,
+        "value" : 0.5
+      }
+    }
+  ],
+  "supported-platforms" : {
+    "squares" : "shared"
+  }
+}
