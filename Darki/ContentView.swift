@@ -2,20 +2,51 @@ import SwiftUI
 import AppKit
 import ServiceManagement
 
-// MARK: - Liquid Glass helper (macOS 26+ only)
-// Sur macOS 14/15, le ViewModifier est un no-op transparent.
-private struct GlassButtonModifier: ViewModifier {
-    func body(content: Content) -> some View {
-        if #available(macOS 26, *) {
-            content.glassEffect(.regular.interactive())
-        } else {
-            content
+// MARK: - Card button style (bouton principal)
+
+/// Bouton plein largeur à fond arrondi, avec états survol/pression — proche
+/// du bouton « Pause syncing » de la référence. S'adapte au clair/sombre.
+private struct CardButtonStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        CardButtonBody(configuration: configuration)
+    }
+
+    private struct CardButtonBody: View {
+        let configuration: Configuration
+        @State private var hovering = false
+
+        var body: some View {
+            configuration.label
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 11)
+                .background(
+                    RoundedRectangle(cornerRadius: 10, style: .continuous)
+                        .fill(Color.primary.opacity(
+                            configuration.isPressed ? 0.16 : (hovering ? 0.11 : 0.07)
+                        ))
+                )
+                .contentShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+                .onHover { hovering = $0 }
+                .animation(.easeOut(duration: 0.12), value: hovering)
+                .animation(.easeOut(duration: 0.10), value: configuration.isPressed)
         }
     }
 }
 
-private extension View {
-    func adaptiveGlass() -> some View { modifier(GlassButtonModifier()) }
+// MARK: - Popover background
+
+/// Matériau de fenêtre natif (type popover) en fond du menu. Indispensable :
+/// sans lui, la fenêtre est transparente et le texte du mode clair devient
+/// illisible sur un bureau sombre. S'adapte automatiquement clair/sombre.
+private struct VisualEffectBackground: NSViewRepresentable {
+    func makeNSView(context: Context) -> NSVisualEffectView {
+        let view = NSVisualEffectView()
+        view.material = .popover
+        view.blendingMode = .behindWindow
+        view.state = .active
+        return view
+    }
+    func updateNSView(_ nsView: NSVisualEffectView, context: Context) {}
 }
 
 // MARK: - Main View
@@ -32,181 +63,184 @@ struct ContentView: View {
     @State private var animateToggleIcon = false
     @State private var hasAppeared = false
 
+    @Environment(\.colorScheme) private var colorScheme
+
     private let controller = AppearanceController.shared
 
-    // ── Time picker helpers ──────────────────────────────────────────────────
+    // ── Couleurs d'accent (contrastées dans les deux apparences) ─────────────
+    /// Soleil : l'orange passe bien sur clair comme sur sombre.
+    private var lightAccent: Color { .orange }
+    /// Lune : violet vif sur fond sombre, indigo plus profond sur fond clair
+    /// (sinon le violet clair est peu lisible en mode clair).
+    private var darkAccent: Color { colorScheme == .light ? .indigo : .purple }
+
+    // ── Helpers horaires ─────────────────────────────────────────────────────
     private let step = 10
     private var timeSlots: [Int] { stride(from: 0, to: 24 * 60, by: step).map { $0 } }
-
     private func formatSlot(_ minutes: Int) -> String {
         String(format: "%02d:%02d", minutes / 60, minutes % 60)
     }
-
-    private func snap(_ hour: Int, _ minute: Int) -> Int {
-        ((hour * 60 + minute) / step) * step
-    }
+    private func snap(_ hour: Int, _ minute: Int) -> Int { ((hour * 60 + minute) / step) * step }
 
     private var startSlot: Binding<Int> {
-        Binding(
-            get: { snap(startHour, startMinute) },
-            set: { v in startHour = v / 60; startMinute = v % 60; controller.scheduleChanged() }
-        )
+        Binding(get: { snap(startHour, startMinute) },
+                set: { v in startHour = v / 60; startMinute = v % 60; controller.scheduleChanged() })
     }
-
     private var endSlot: Binding<Int> {
-        Binding(
-            get: { snap(endHour, endMinute) },
-            set: { v in endHour = v / 60; endMinute = v % 60; controller.scheduleChanged() }
-        )
+        Binding(get: { snap(endHour, endMinute) },
+                set: { v in endHour = v / 60; endMinute = v % 60; controller.scheduleChanged() })
     }
 
-    /// Décrit la prochaine bascule automatique ("Passe en clair à 07:00").
+    // ── Texte dérivé ─────────────────────────────────────────────────────────
+    private var appVersion: String {
+        (Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String).map { "v\($0)" } ?? ""
+    }
+
+    /// Sous-titre du header : plage horaire en mode auto, sinon mode courant.
+    private var subtitle: String {
+        if autoMode {
+            return "\(formatSlot(snap(startHour, startMinute))) – \(formatSlot(snap(endHour, endMinute)))"
+        }
+        return String(localized: isDark ? "subtitle_dark" : "subtitle_light")
+    }
+
+    /// Prochaine bascule automatique ("Passe en clair à 07:00").
     private var nextSwitchText: String {
-        let calendar = Calendar.current
-        let now = calendar.component(.hour, from: Date()) * 60 + calendar.component(.minute, from: Date())
+        let cal = Calendar.current
+        let now = cal.component(.hour, from: Date()) * 60 + cal.component(.minute, from: Date())
         let start = startHour * 60 + startMinute
         let end = endHour * 60 + endMinute
-        let inDarkWindow = start < end ? (now >= start && now < end) : (now >= start || now < end)
-        return inDarkWindow
-            ? String(format: String(localized: "auto_to_light"), formatSlot(end))
-            : String(format: String(localized: "auto_to_dark"), formatSlot(start))
+        let dark = start < end ? (now >= start && now < end) : (now >= start || now < end)
+        return dark
+            ? String(format: String(localized: "auto_to_light"), formatSlot(snap(endHour, endMinute)))
+            : String(format: String(localized: "auto_to_dark"), formatSlot(snap(startHour, startMinute)))
     }
+
+    // MARK: - Body
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-
-            // ── Header ──────────────────────────────────────────────────────
-            HStack(spacing: 8) {
-                Image(systemName: isDark ? "moon.fill" : "sun.max.fill")
-                    .symbolRenderingMode(.palette)
-                    .foregroundStyle(isDark ? .purple : .orange, .yellow.opacity(0.6))
-                    .font(.title2)
-                    // Morph fluide entre soleil et lune au changement d'état.
-                    .contentTransition(.symbolEffect(.replace))
-                    .accessibilityHidden(true)
-                    // Frame fixe = l'icône la plus large (sun.max.fill) fixe la
-                    // taille ; moon.fill se centre dedans sans décaler le layout.
-                    .frame(width: 28, height: 28)
-
-                Text("Darki").font(.headline)
-                Spacer()
-            }
-            .padding(.horizontal, 16)
-            .padding(.top, 14)
-            .padding(.bottom, 12)
+            header
+                .padding(.horizontal, 16)
+                .padding(.top, 14)
+                .padding(.bottom, 12)
 
             Divider()
 
-            // ── Toggle principal ─────────────────────────────────────────────
-            Button {
-                toggleDarkMode()
-                animateToggleIcon.toggle()
-            } label: {
-                HStack {
-                    Image(systemName: isDark ? "sun.max" : "moon")
-                        .symbolEffect(.bounce, options: .speed(1.4), value: animateToggleIcon)
-                        // Largeur fixe : le libellé ne saute pas quand l'icône
-                        // change (sun.max est plus large que moon).
-                        .frame(width: 22)
-                        .accessibilityHidden(true)
-                    Text(isDark ? "switch_to_light" : "switch_to_dark")
+            VStack(alignment: .leading, spacing: 14) {
+                primaryButton
+
+                VStack(alignment: .leading, spacing: 12) {
+                    toggleRow(icon: "clock.arrow.2.circlepath",
+                              title: "auto_mode", help: "auto_mode_help",
+                              isOn: $autoMode) { controller.autoModeChanged($0) }
+
+                    if autoMode { scheduleBlock }
                 }
-                .frame(maxWidth: .infinity)
+
+                toggleRow(icon: "power",
+                          title: "launch_at_login", help: "launch_at_login_help",
+                          isOn: $launchAtLogin) { setLaunchAtLogin($0) }
             }
-            .buttonStyle(.borderedProminent)
-            .tint(isDark ? .orange : .purple)
-            // Liquid Glass uniquement sur macOS 26+, sinon borderedProminent suffit.
-            .adaptiveGlass()
             .padding(.horizontal, 16)
-            .padding(.vertical, 12)
+            .padding(.vertical, 14)
 
             Divider()
 
-            // ── Mode automatique ─────────────────────────────────────────────
-            VStack(alignment: .leading, spacing: 10) {
-                Toggle("auto_mode", isOn: $autoMode)
-                    .help("auto_mode_help")
-                    .onChange(of: autoMode) { _, newValue in
-                        controller.autoModeChanged(newValue)
-                    }
-
-                scheduleSection
-                    // .disabled() seul : SwiftUI gère le feedback visuel natif.
-                    .disabled(!autoMode)
-            }
-            .padding(.horizontal, 16)
-            .padding(.vertical, 12)
-
-            Divider()
-
-            // ── Lancement au démarrage ───────────────────────────────────────
-            Toggle("launch_at_login", isOn: $launchAtLogin)
-                .help("launch_at_login_help")
-                .onChange(of: launchAtLogin) { _, newValue in
-                    setLaunchAtLogin(newValue)
-                }
+            footer
                 .padding(.horizontal, 16)
                 .padding(.vertical, 10)
-
-            Divider()
-
-            // ── Quitter ──────────────────────────────────────────────────────
-            Button {
-                NSApplication.shared.terminate(nil)
-            } label: {
-                HStack {
-                    Image(systemName: "xmark.circle").accessibilityHidden(true)
-                    Text("quit")
-                }
-                .frame(maxWidth: .infinity)
-            }
-            .buttonStyle(.bordered)
-            .keyboardShortcut("q")
-            .padding(.horizontal, 16)
-            .padding(.vertical, 10)
-            .padding(.bottom, 4)
         }
         .frame(width: 300)
-        // Hauteur fixe : empêche tout redimensionnement au changement d'icône.
         .fixedSize(horizontal: false, vertical: true)
-        // Anime header + teinte + libellés quand l'état bascule — mais pas à
-        // la première ouverture (sinon le menu « s'anime » en apparaissant).
-        .animation(hasAppeared ? .smooth(duration: 0.35) : nil, value: isDark)
+        .background(VisualEffectBackground().ignoresSafeArea())
+        .animation(hasAppeared ? .smooth(duration: 0.30) : nil, value: isDark)
+        .animation(hasAppeared ? .snappy(duration: 0.22) : nil, value: autoMode)
         .onAppear {
             syncState()
             hasAppeared = true
         }
     }
 
-    // MARK: - Schedule section
+    // MARK: - Header
 
-    private var scheduleSection: some View {
+    private var header: some View {
+        HStack(spacing: 10) {
+            Image(systemName: isDark ? "moon.fill" : "sun.max.fill")
+                .font(.system(size: 22))
+                .foregroundStyle(isDark ? darkAccent : lightAccent)
+                .contentTransition(.symbolEffect(.replace))
+                .frame(width: 28, height: 28)
+                .accessibilityHidden(true)
+
+            VStack(alignment: .leading, spacing: 1) {
+                Text("Darki").font(.headline)
+                Text(subtitle)
+                    .font(.caption)
+                    .monospacedDigit()
+                    .foregroundStyle(.secondary)
+                    .contentTransition(.numericText())
+            }
+
+            Spacer(minLength: 8)
+        }
+    }
+
+    // MARK: - Primary button
+
+    private var primaryButton: some View {
+        Button {
+            toggleDarkMode()
+            animateToggleIcon.toggle()
+        } label: {
+            HStack(spacing: 8) {
+                Image(systemName: isDark ? "sun.max.fill" : "moon.fill")
+                    .symbolEffect(.bounce, options: .speed(1.4), value: animateToggleIcon)
+                    .foregroundStyle(isDark ? lightAccent : darkAccent)
+                    .frame(width: 20)
+                    .accessibilityHidden(true)
+                Text(isDark ? "switch_to_light" : "switch_to_dark")
+                    .fontWeight(.medium)
+            }
+        }
+        .buttonStyle(CardButtonStyle())
+    }
+
+    // MARK: - Schedule
+
+    private var scheduleBlock: some View {
         VStack(alignment: .leading, spacing: 8) {
             Text("dark_mode_schedule")
-                .font(.caption)
+                .textCase(.uppercase)
+                .font(.caption2)
+                .fontWeight(.semibold)
+                .kerning(0.6)
                 .foregroundStyle(.secondary)
+                .padding(.top, 2)
 
-            timeRow(label: "start", slot: startSlot)
-            timeRow(label: "end",   slot: endSlot)
+            timeRow(icon: "moon.fill", label: "start", slot: startSlot)
+            timeRow(icon: "sun.max.fill", label: "end", slot: endSlot)
 
-            // Aperçu vivant de la prochaine bascule.
             Label(nextSwitchText, systemImage: "clock")
                 .font(.caption2)
                 .monospacedDigit()
                 .foregroundStyle(.secondary)
-                .padding(.top, 2)
-                // Le chiffre de l'heure morphe au lieu de sauter (changement d'horaire).
                 .contentTransition(.numericText())
+                .padding(.top, 1)
         }
-        .padding(.leading, 8)
+        .padding(.leading, 30)
+        .transition(.opacity.combined(with: .move(edge: .top)))
     }
 
-    @ViewBuilder
-    private func timeRow(label: LocalizedStringKey, slot: Binding<Int>) -> some View {
-        HStack {
-            Text(label).frame(width: 50, alignment: .leading)
-
-            // Un seul Picker "HH:mm", palier 10 min, style .menu natif.
+    private func timeRow(icon: String, label: LocalizedStringKey, slot: Binding<Int>) -> some View {
+        HStack(spacing: 10) {
+            Image(systemName: icon)
+                .font(.system(size: 12))
+                .foregroundStyle(.tertiary)
+                .frame(width: 16)
+                .accessibilityHidden(true)
+            Text(label)
+            Spacer()
             Picker("", selection: slot) {
                 ForEach(timeSlots, id: \.self) { minutes in
                     Text(formatSlot(minutes)).monospacedDigit().tag(minutes)
@@ -214,14 +248,52 @@ struct ContentView: View {
             }
             .labelsHidden()
             .pickerStyle(.menu)
-            // Largeur fixe pour que "23:50" ne soit pas tronqué.
-            .frame(width: 80)
+            .fixedSize()
+        }
+    }
+
+    // MARK: - Toggle row
+
+    private func toggleRow(icon: String,
+                           title: LocalizedStringKey,
+                           help: LocalizedStringKey,
+                           isOn: Binding<Bool>,
+                           onChange: @escaping (Bool) -> Void) -> some View {
+        HStack(spacing: 10) {
+            Image(systemName: icon)
+                .font(.system(size: 15))
+                .foregroundStyle(.secondary)
+                .frame(width: 20)
+                .accessibilityHidden(true)
+            Text(title)
+            Spacer()
+            Toggle("", isOn: isOn)
+                .labelsHidden()
+                .toggleStyle(.switch)
+                .tint(.blue)
+                .accessibilityLabel(Text(title))
+                .onChange(of: isOn.wrappedValue) { _, v in onChange(v) }
+        }
+        .help(help)
+    }
+
+    // MARK: - Footer
+
+    private var footer: some View {
+        HStack {
+            Text(appVersion)
+                .font(.caption)
+                .foregroundStyle(.tertiary)
+            Spacer()
+            Button("quit") { NSApplication.shared.terminate(nil) }
+                .buttonStyle(.plain)
+                .foregroundStyle(.secondary)
+                .keyboardShortcut("q")
         }
     }
 
     // MARK: - Actions
 
-    /// Aligne l'UI sur l'état réel du système à l'ouverture du menu.
     private func syncState() {
         isDark = AppleScriptManager.isSystemDark
         launchAtLogin = (SMAppService.mainApp.status == .enabled)
