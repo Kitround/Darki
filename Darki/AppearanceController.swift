@@ -15,7 +15,16 @@ import AppKit
 final class AppearanceController {
 
     static let shared = AppearanceController()
-    private init() {}
+    private init() {
+        // Les valeurs par défaut de `@AppStorage` ne sont jamais écrites dans
+        // `UserDefaults` : sans cet enregistrement, une heure jamais modifiée
+        // (ex. fin à 7h) serait lue ici comme 0 → bascule en clair à minuit.
+        // Doit rester aligné avec les défauts de `ContentView`.
+        defaults.register(defaults: [
+            Key.startHour: 20, Key.startMinute: 0,
+            Key.endHour: 7, Key.endMinute: 0,
+        ])
+    }
 
     private let defaults = UserDefaults.standard
     private var startTimer: Timer?
