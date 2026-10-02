@@ -10,10 +10,10 @@ A free and simple macOS menu bar app that automatically toggles between Light an
 
 ## Features
 
-- 🌓 Quick toggle between Light/Dark mode from menu bar
-- ⏰ Auto mode: Schedule dark mode between specific hours
-- 🚀 Launch at login option
-- 🎨 Native SwiftUI interface for macOS
+- Quick toggle between Light/Dark mode from menu bar
+- Auto mode: Schedule dark mode between specific hours
+- Launch at login option
+- Native SwiftUI interface for macOS
 
 <img src="screenshot.jpg" alt="Screenshot" width="300" height="auto">
 
