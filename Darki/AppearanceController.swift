@@ -116,14 +116,14 @@ final class AppearanceController {
         if let startDate = nextDate(hour: defaults.integer(forKey: Key.startHour),
                                     minute: defaults.integer(forKey: Key.startMinute)) {
             startTimer = makeDailyTimer(firingAt: startDate) { [weak self] in
-                _ = await self?.setDark(true)
+                await self?.applyScheduled(true)
             }
         }
 
         if let endDate = nextDate(hour: defaults.integer(forKey: Key.endHour),
                                   minute: defaults.integer(forKey: Key.endMinute)) {
             endTimer = makeDailyTimer(firingAt: endDate) { [weak self] in
-                _ = await self?.setDark(false)
+                await self?.applyScheduled(false)
             }
         }
 
@@ -151,7 +151,18 @@ final class AppearanceController {
     private func reconcileCurrentState() {
         let shouldBeDark = scheduleWantsDark(at: Date())
         guard AppleScriptManager.isSystemDark != shouldBeDark else { return }
-        Task { await setDark(shouldBeDark) }
+        Task { await applyScheduled(shouldBeDark) }
+    }
+
+    /// Bascule automatique avec nouvelles tentatives : à l'ouverture de
+    /// session, System Events ne répond pas toujours encore et un échec
+    /// unique laissait le Mac en clair jusqu'à la bascule suivante.
+    // ponytail: 6 essais × 5 s, suffisant pour un login lent ; allonger si besoin.
+    private func applyScheduled(_ dark: Bool) async {
+        for _ in 0..<6 {
+            if await setDark(dark) { return }
+            try? await Task.sleep(for: .seconds(5))
+        }
     }
 
     /// Le mode sombre doit-il être actif à l'instant donné ?
